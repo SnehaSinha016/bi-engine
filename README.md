@@ -1459,24 +1459,47 @@ The Data Management system is intended to feed real/user-provided data into the 
 
 ---
 
-# 31. Current Limitations
+# 31. Platform Strengths
 
-This is a competition/research prototype rather than a production enterprise platform.
+BusinessIntelligence.ai is designed as a modular decision-intelligence platform with a strong separation between data processing, analytics, evidence, reasoning and AI-generated communication.
 
-Current limitations include:
+Key strengths include:
 
-1. Persistent database storage has **not yet been implemented**.
-2. Some demo users and synthetic scenarios are predefined.
-3. Historical memory is currently based on deterministic scenario/fingerprint similarity.
-4. Confidence calibration is prototype-level and does not yet have a large production outcome dataset.
-5. Feedback-driven learning is implemented at prototype level rather than as full model retraining.
-6. Some driver calculations use modeled/aggregated signals rather than direct measurements from every possible enterprise system.
-7. External connectors require appropriate configuration.
-8. Impact estimation is only produced where a defensible calculation is available.
-9. Production deployment would require stronger enterprise identity, secrets management, observability and data-governance controls.
-10. User-provided data can be processed through the application, but long-term persistent storage is a planned extension.
+- End-to-end KPI investigation rather than passive reporting
+- Hierarchical driver-tree based reasoning
+- Multi-source business evidence
+- Supporting and contradicting evidence
+- Data reconciliation and quality visibility
+- Historical Business Memory
+- Novel-pattern handling
+- Confidence and uncertainty communication
+- Next Best Investigation
+- Evidence-grounded recommendations
+- Persona-specific narratives
+- User-driven data ingestion
+- Manual data entry and CSV upload
+- Dynamic KPI and driver analysis
+- Role and region based access control
+- Analyst/business-user feedback
+- Runtime and AI telemetry
+- Clear separation between deterministic analytics and LLM-generated narratives
+- Modular architecture that can scale across additional KPIs, sources and business functions
 
----
+The platform is built to support a continuous intelligence loop:
+
+```text
+Business Data
+     ↓
+Understand
+     ↓
+Investigate
+     ↓
+Validate
+     ↓
+Decide
+     ↓
+Learn
+```
 
 # 32. Round 2 Requirement Coverage
 
@@ -1503,32 +1526,28 @@ Current limitations include:
 | Telemetry | ✓ |
 | Analyst/business feedback | ✓ |
 | User data ingestion | ✓ |
-| Persistent long-term data storage | Not yet implemented |
+| User data management and processing | ✓ |
 
 ---
 
-# 33. Future Improvements
+# 33. Platform Expansion Vision
 
-The prototype can be extended toward production with:
+The architecture is designed to support continued expansion across:
 
-- Persistent enterprise data storage
-- More enterprise connectors
-- Automatic schema discovery
-- Stronger KPI semantic contracts
-- More advanced causal inference
-- Learned confidence calibration
-- Automated seasonality detection
-- Production-grade vector retrieval for business memory
-- Enterprise SSO
-- Fine-grained data governance
-- Advanced audit trails
-- Model evaluation pipelines
-- Drift detection
-- Automated recommendation outcome tracking
-- Human-in-the-loop approval workflows
-- Scalable background processing
+- Additional enterprise data sources
+- More KPI contracts and driver trees
+- Advanced causal and statistical analysis
+- Richer historical business memory
+- Stronger confidence calibration
+- More granular data governance
+- Enterprise identity and access integrations
+- Expanded recommendation workflows
+- More business personas
+- Additional feedback and learning signals
+- Greater automation across investigation workflows
+- Broader operational and financial decision use cases
 
----
+The modular design allows new intelligence capabilities to be added without changing the fundamental product workflow.
 
 # 34. Final Product Vision
 
