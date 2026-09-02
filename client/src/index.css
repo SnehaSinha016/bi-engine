@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-ink: #0f1729;
+  --color-ink-soft: #17223d;
+  --color-canvas: #f5f6fa;
+  --color-card: #ffffff;
+  --color-paper: #fafbfd;
+  --color-line: #e3e6ef;
+  --color-heading: #161b2c;
+  --color-body: #545b70;
+  --color-primary: #3454d1;
+  --color-primary-soft: #e8ecfb;
+  --color-amber: #b9791f;
+  --color-amber-soft: #faf1e0;
+  --color-green: #22895a;
+  --color-green-soft: #e3f5ec;
+  --color-clay: #b8503f;
+  --color-clay-soft: #fbe9e6;
+}
+
+html, body, #root { height: 100%; }
+body {
+  background: var(--color-canvas);
+  color: var(--color-body);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, .font-display { font-family: var(--font-display); color: var(--color-heading); }
+.font-mono-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Editorial section: a left accent rule instead of a boxed card on
+   every block, the repeated bordered-card pattern is the single
+   biggest "templated" signal, so this is the default going forward
+   for long-form investigation content. Boxed cards are reserved for
+   things that are genuinely discrete objects (a single stat, an
+   action item), not for narrative sections. */
+.editorial-section {
+  border-left: 2px solid var(--color-line);
+  padding-left: 1.25rem;
+}
+.editorial-section + .editorial-section {
+  margin-top: 2.25rem;
+}
+
+::selection { background: var(--color-primary-soft); }
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

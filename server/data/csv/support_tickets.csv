@@ -1,0 +1,91 @@
+ticket_id,customer_id,region_label,timestamp,category,sentiment,issue_text
+TCK-10000,CUST-N10210,north-region,2026-08-25T15:57:00Z,payment,-0.75,Getting a gateway timeout error on checkout page
+TCK-10001,GUEST-985199,north-region,2026-08-27T08:24:00Z,payment,-0.75,Getting a gateway timeout error on checkout page
+TCK-10002,CUST-N10184,north-region,2026-08-25T08:08:00Z,complaint,-0.85,Frustrated, tried to pay three times and it kept failing
+TCK-10003,CUST-N10113,north-region,2026-08-25T13:57:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10004,CUST-N10044,north-region,2026-08-25T14:25:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10005,CUST-N10138,north-region,2026-08-24T10:13:00Z,complaint,-0.85,Frustrated, tried to pay three times and it kept failing
+TCK-10006,CUST-N10081,north-region,2026-08-27T08:21:00Z,payment,-0.75,Getting a gateway timeout error on checkout page
+TCK-10007,CUST-N10171,north-region,2026-08-26T11:49:00Z,complaint,-0.85,Frustrated, tried to pay three times and it kept failing
+TCK-10008,CUST-N10154,north-region,2026-08-27T10:46:00Z,product,0.1,Question about return policy for electronics
+TCK-10009,GUEST-658200,north-region,2026-08-25T08:51:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10010,CUST-N10175,north-region,2026-08-26T09:53:00Z,payment,-0.75,Getting a gateway timeout error on checkout page
+TCK-10011,CUST-N10087,north-region,2026-08-25T11:47:00Z,payment,-0.75,Getting a gateway timeout error on checkout page
+TCK-10012,CUST-N10131,north-region,2026-08-25T13:39:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10013,CUST-N10053,north-region,2026-08-26T14:57:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10014,CUST-N10193,north-region,2026-08-25T17:05:00Z,payment,-0.75,Getting a gateway timeout error on checkout page
+TCK-10015,CUST-N10145,north-region,2026-08-27T15:29:00Z,complaint,-0.85,Frustrated, tried to pay three times and it kept failing
+TCK-10016,CUST-N10075,north-region,2026-08-26T13:29:00Z,payment,-0.75,Getting a gateway timeout error on checkout page
+TCK-10017,CUST-N10151,north-region,2026-08-25T09:40:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10018,CUST-N10193,north-region,2026-08-22T11:48:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10019,CUST-N10002,north-region,2026-08-11T17:19:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10020,CUST-N10116,north-region,2026-08-24T13:35:00Z,other,0.6,"Loved the new packaging, nice touch"
+TCK-10021,CUST-N10042,north-region,2026-08-18T17:13:00Z,complaint,-0.85,Frustrated, tried to pay three times and it kept failing
+TCK-10022,CUST-N10186,north-region,2026-08-21T13:18:00Z,other,0.6,"Loved the new packaging, nice touch"
+TCK-10023,CUST-N10201,north-region,2026-08-09T13:54:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10024,CUST-N10002,north-region,2026-08-13T11:41:00Z,other,0.6,"Loved the new packaging, nice touch"
+TCK-10025,CUST-N10145,north-region,2026-08-19T15:34:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10026,CUST-N10094,north-region,2026-08-21T16:13:00Z,payment,-0.8,"Payment failed at checkout, card charged but order not confirmed"
+TCK-10027,CUST-N10143,north-region,2026-08-21T16:56:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10028,GUEST-871541,north-region,2026-08-22T14:12:00Z,payment,-0.75,Getting a gateway timeout error on checkout page
+TCK-10029,CUST-N10062,north-region,2026-08-16T17:10:00Z,complaint,-0.85,Frustrated, tried to pay three times and it kept failing
+TCK-10030,CUST-S10145,south-region,2026-08-26T15:40:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10031,CUST-S10140,south-region,2026-08-24T13:26:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10032,GUEST-829358,south-region,2026-08-24T09:04:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10033,CUST-S10187,south-region,2026-08-24T13:51:00Z,delivery,-0.7,"Order still not shipped, tracking hasn't updated in 5 days"
+TCK-10034,CUST-S10127,south-region,2026-08-25T15:01:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10035,CUST-S10172,south-region,2026-08-27T17:22:00Z,delivery,-0.7,"Order still not shipped, tracking hasn't updated in 5 days"
+TCK-10036,CUST-S10176,south-region,2026-08-26T13:03:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10037,CUST-S10134,south-region,2026-08-25T16:53:00Z,product,0.1,Question about return policy for electronics
+TCK-10038,CUST-S10127,south-region,2026-08-27T13:56:00Z,product,0.1,Question about return policy for electronics
+TCK-10039,GUEST-629245,south-region,2026-08-25T12:10:00Z,delivery,-0.7,"Order still not shipped, tracking hasn't updated in 5 days"
+TCK-10040,CUST-S10217,south-region,2026-08-25T09:33:00Z,delivery,-0.72,Item shows out of stock after I already paid for it
+TCK-10041,CUST-S10046,south-region,2026-08-26T08:54:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10042,GUEST-380022,south-region,2026-08-26T16:37:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10043,CUST-S10012,south-region,2026-08-27T16:24:00Z,delivery,-0.7,"Order still not shipped, tracking hasn't updated in 5 days"
+TCK-10044,CUST-S10072,south-region,2026-08-27T14:37:00Z,delivery,-0.72,Item shows out of stock after I already paid for it
+TCK-10045,CUST-S10116,south-region,2026-08-25T14:40:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10046,CUST-S10183,south-region,2026-08-26T10:16:00Z,other,0.6,"Loved the new packaging, nice touch"
+TCK-10047,CUST-S10030,south-region,2026-08-24T10:45:00Z,delivery,-0.72,Item shows out of stock after I already paid for it
+TCK-10048,CUST-S10019,south-region,2026-08-23T14:16:00Z,other,0.6,"Loved the new packaging, nice touch"
+TCK-10049,CUST-S10162,south-region,2026-08-20T08:53:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10050,GUEST-375968,south-region,2026-08-10T17:54:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10051,GUEST-191005,south-region,2026-08-21T12:34:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10052,CUST-S10040,south-region,2026-08-09T10:57:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10053,CUST-S10098,south-region,2026-08-19T09:57:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10054,GUEST-605279,south-region,2026-08-12T17:21:00Z,product,0.1,Question about return policy for electronics
+TCK-10055,CUST-S10086,south-region,2026-08-14T14:05:00Z,delivery,-0.7,"Order still not shipped, tracking hasn't updated in 5 days"
+TCK-10056,CUST-S10045,south-region,2026-08-11T09:44:00Z,delivery,-0.72,Item shows out of stock after I already paid for it
+TCK-10057,CUST-S10063,south-region,2026-08-16T15:28:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10058,GUEST-700479,south-region,2026-08-15T16:47:00Z,fulfillment,-0.68,Warehouse delay pushed my delivery window back a week
+TCK-10059,CUST-S10087,south-region,2026-08-15T12:26:00Z,delivery,-0.7,"Order still not shipped, tracking hasn't updated in 5 days"
+TCK-10060,GUEST-914688,west-region,2026-08-24T08:56:00Z,complaint,-0.55,Support response time has gotten worse recently
+TCK-10061,CUST-W10018,west-region,2026-08-24T13:27:00Z,complaint,-0.55,Support response time has gotten worse recently
+TCK-10062,CUST-W10122,west-region,2026-08-26T17:36:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10063,CUST-W10210,west-region,2026-08-27T08:09:00Z,product,-0.6,"Considering cancelling my subscription, service feels slower lately"
+TCK-10064,CUST-W10137,west-region,2026-08-25T14:20:00Z,complaint,-0.55,Support response time has gotten worse recently
+TCK-10065,CUST-W10211,west-region,2026-08-25T14:13:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10066,CUST-W10139,west-region,2026-08-27T10:02:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10067,CUST-W10123,west-region,2026-08-24T09:37:00Z,product,-0.6,"Considering cancelling my subscription, service feels slower lately"
+TCK-10068,CUST-W10102,west-region,2026-08-27T16:21:00Z,complaint,-0.55,Support response time has gotten worse recently
+TCK-10069,CUST-W10209,west-region,2026-08-24T11:56:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10070,CUST-W10044,west-region,2026-08-25T12:30:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10071,CUST-W10000,west-region,2026-08-25T09:54:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10072,CUST-W10048,west-region,2026-08-25T11:03:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10073,CUST-W10033,west-region,2026-08-25T12:58:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10074,CUST-W10026,west-region,2026-08-24T08:59:00Z,product,-0.1,Asking about restock date for a home goods item
+TCK-10075,CUST-W10128,west-region,2026-08-24T09:47:00Z,product,-0.6,"Considering cancelling my subscription, service feels slower lately"
+TCK-10076,GUEST-566833,west-region,2026-08-27T15:57:00Z,complaint,-0.55,Support response time has gotten worse recently
+TCK-10077,CUST-W10160,west-region,2026-08-26T14:13:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10078,CUST-W10147,west-region,2026-08-10T16:19:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10079,CUST-W10081,west-region,2026-08-18T10:35:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10080,GUEST-642696,west-region,2026-08-12T15:40:00Z,complaint,-0.55,Support response time has gotten worse recently
+TCK-10081,CUST-W10124,west-region,2026-08-11T08:39:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10082,GUEST-504474,west-region,2026-08-10T17:18:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10083,GUEST-831383,west-region,2026-08-11T14:26:00Z,delivery,-0.5,Delivery is taking longer than usual this week
+TCK-10084,GUEST-961495,west-region,2026-08-12T14:58:00Z,product,-0.6,"Considering cancelling my subscription, service feels slower lately"
+TCK-10085,CUST-W10136,west-region,2026-08-09T16:40:00Z,complaint,-0.55,Support response time has gotten worse recently
+TCK-10086,GUEST-157770,west-region,2026-08-16T14:37:00Z,product,0.1,Question about return policy for electronics
+TCK-10087,CUST-W10096,west-region,2026-08-17T17:15:00Z,product,-0.6,"Considering cancelling my subscription, service feels slower lately"
+TCK-10088,CUST-W10204,west-region,2026-08-16T13:20:00Z,product,0.1,Question about return policy for electronics
+TCK-10089,CUST-W10120,west-region,2026-08-20T14:02:00Z,product,-0.6,"Considering cancelling my subscription, service feels slower lately"

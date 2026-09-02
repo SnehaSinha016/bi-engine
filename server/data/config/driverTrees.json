@@ -1,0 +1,438 @@
+{
+  "revenue": {
+    "id": "revenue",
+    "label": "Revenue",
+    "metricKey": "revenue",
+    "children": [
+      {
+        "id": "volume",
+        "label": "Volume",
+        "metricKey": "orders",
+        "children": [
+          {
+            "id": "traffic",
+            "label": "Traffic",
+            "metricKey": "traffic",
+            "historicalKeywords": [
+              "traffic",
+              "demand"
+            ],
+            "requiredEvidence": [
+              "traffic"
+            ]
+          },
+          {
+            "id": "conversion",
+            "label": "Conversion",
+            "metricKey": "conversion",
+            "historicalKeywords": [
+              "conversion",
+              "funnel"
+            ],
+            "children": [
+              {
+                "id": "checkout",
+                "label": "Checkout Success Rate",
+                "metricKey": "checkoutSuccessRate",
+                "evidenceCategories": [
+                  "payment"
+                ],
+                "historicalKeywords": [
+                  "payment",
+                  "gateway",
+                  "checkout"
+                ],
+                "requiredEvidence": [
+                  "checkoutSuccessRate",
+                  "conversion"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "customers",
+            "label": "Active Customers",
+            "metricKey": "activeCustomers",
+            "historicalKeywords": [
+              "customer"
+            ],
+            "requiredEvidence": [
+              "activeCustomers"
+            ]
+          },
+          {
+            "id": "returns",
+            "label": "Returns / Cancellations",
+            "metricKey": "returnRate",
+            "historicalKeywords": [
+              "return",
+              "cancellation",
+              "refund"
+            ],
+            "requiredEvidence": [
+              "returnRate"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "price",
+        "label": "Price",
+        "metricKey": "aov",
+        "children": [
+          {
+            "id": "discounts",
+            "label": "Discounts",
+            "metricKey": "discountRate",
+            "historicalKeywords": [
+              "pricing",
+              "price",
+              "discount"
+            ],
+            "requiredEvidence": [
+              "discountRate",
+              "aov"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "operational",
+        "label": "Operational / Customer Context",
+        "metricKey": "opsIndex",
+        "composite": true,
+        "children": [
+          {
+            "id": "inventory",
+            "label": "Inventory Stockouts",
+            "metricKey": "stockoutRate",
+            "historicalKeywords": [
+              "stock",
+              "inventory",
+              "supply"
+            ],
+            "requiredEvidence": [
+              "stockoutRate"
+            ]
+          },
+          {
+            "id": "delivery",
+            "label": "Delivery Time",
+            "metricKey": "avgDeliveryDays",
+            "historicalKeywords": [
+              "delivery",
+              "shipping",
+              "carrier"
+            ],
+            "requiredEvidence": [
+              "avgDeliveryDays"
+            ]
+          },
+          {
+            "id": "fulfillment",
+            "label": "Fulfillment SLA",
+            "metricKey": "slaBreachRate",
+            "evidenceCategories": [
+              "delivery",
+              "fulfillment"
+            ],
+            "historicalKeywords": [
+              "warehouse",
+              "fulfillment",
+              "capacity",
+              "supply"
+            ],
+            "requiredEvidence": [
+              "slaBreachRate",
+              "avgDeliveryDays",
+              "stockoutRate"
+            ]
+          },
+          {
+            "id": "complaints",
+            "label": "Complaints",
+            "metricKey": "complaintRate",
+            "evidenceCategories": [
+              "complaint"
+            ],
+            "historicalKeywords": [
+              "complaint"
+            ],
+            "requiredEvidence": [
+              "complaintRate"
+            ]
+          },
+          {
+            "id": "cx",
+            "label": "Customer Sentiment",
+            "metricKey": "sentimentScore",
+            "evidenceCategories": [
+              "complaint",
+              "product"
+            ],
+            "historicalKeywords": [
+              "sentiment",
+              "experience"
+            ],
+            "requiredEvidence": [
+              "sentimentScore"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "orders": {
+    "id": "orders",
+    "label": "Orders",
+    "metricKey": "orders",
+    "children": [
+      {
+        "id": "traffic",
+        "label": "Traffic",
+        "metricKey": "traffic",
+        "historicalKeywords": [
+          "traffic",
+          "demand"
+        ],
+        "requiredEvidence": [
+          "traffic"
+        ]
+      },
+      {
+        "id": "conversion",
+        "label": "Conversion",
+        "metricKey": "conversion",
+        "historicalKeywords": [
+          "conversion",
+          "funnel"
+        ],
+        "children": [
+          {
+            "id": "checkout",
+            "label": "Checkout Success Rate",
+            "metricKey": "checkoutSuccessRate",
+            "evidenceCategories": [
+              "payment"
+            ],
+            "historicalKeywords": [
+              "payment",
+              "gateway",
+              "checkout"
+            ],
+            "requiredEvidence": [
+              "checkoutSuccessRate",
+              "conversion"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "customers",
+        "label": "Active Customers",
+        "metricKey": "activeCustomers",
+        "historicalKeywords": [
+          "customer"
+        ],
+        "requiredEvidence": [
+          "activeCustomers"
+        ]
+      },
+      {
+        "id": "returns",
+        "label": "Returns / Cancellations",
+        "metricKey": "returnRate",
+        "historicalKeywords": [
+          "return",
+          "cancellation",
+          "refund"
+        ],
+        "requiredEvidence": [
+          "returnRate"
+        ]
+      },
+      {
+        "id": "inventory",
+        "label": "Inventory Stockouts",
+        "metricKey": "stockoutRate",
+        "historicalKeywords": [
+          "stock",
+          "inventory",
+          "supply"
+        ],
+        "requiredEvidence": [
+          "stockoutRate"
+        ]
+      }
+    ]
+  },
+  "conversion": {
+    "id": "conversion",
+    "label": "Conversion Rate",
+    "metricKey": "conversion",
+    "children": [
+      {
+        "id": "checkout",
+        "label": "Checkout Success Rate",
+        "metricKey": "checkoutSuccessRate",
+        "evidenceCategories": [
+          "payment"
+        ],
+        "historicalKeywords": [
+          "payment",
+          "gateway",
+          "checkout"
+        ],
+        "requiredEvidence": [
+          "checkoutSuccessRate",
+          "conversion"
+        ]
+      },
+      {
+        "id": "inventory",
+        "label": "Inventory Stockouts",
+        "metricKey": "stockoutRate",
+        "historicalKeywords": [
+          "stock",
+          "inventory",
+          "supply"
+        ],
+        "requiredEvidence": [
+          "stockoutRate"
+        ]
+      },
+      {
+        "id": "delivery",
+        "label": "Delivery Time",
+        "metricKey": "avgDeliveryDays",
+        "historicalKeywords": [
+          "delivery",
+          "shipping"
+        ],
+        "requiredEvidence": [
+          "avgDeliveryDays"
+        ]
+      },
+      {
+        "id": "cx",
+        "label": "Customer Sentiment",
+        "metricKey": "sentimentScore",
+        "evidenceCategories": [
+          "complaint",
+          "product"
+        ],
+        "historicalKeywords": [
+          "sentiment",
+          "experience"
+        ],
+        "requiredEvidence": [
+          "sentimentScore"
+        ]
+      }
+    ]
+  },
+  "aov": {
+    "id": "aov",
+    "label": "Average Order Value",
+    "metricKey": "aov",
+    "children": [
+      {
+        "id": "discounts",
+        "label": "Discounts",
+        "metricKey": "discountRate",
+        "historicalKeywords": [
+          "pricing",
+          "price",
+          "discount"
+        ],
+        "requiredEvidence": [
+          "discountRate",
+          "aov"
+        ]
+      },
+      {
+        "id": "returns",
+        "label": "Returns / Refunds",
+        "metricKey": "returnRate",
+        "historicalKeywords": [
+          "return",
+          "refund"
+        ],
+        "requiredEvidence": [
+          "returnRate"
+        ]
+      }
+    ]
+  },
+  "churn": {
+    "id": "churn",
+    "label": "Customer Churn",
+    "metricKey": "churnRate",
+    "children": [
+      {
+        "id": "fulfillment",
+        "label": "Fulfillment SLA",
+        "metricKey": "slaBreachRate",
+        "evidenceCategories": [
+          "delivery",
+          "fulfillment"
+        ],
+        "historicalKeywords": [
+          "warehouse",
+          "fulfillment",
+          "capacity",
+          "supply"
+        ],
+        "requiredEvidence": [
+          "slaBreachRate",
+          "avgDeliveryDays",
+          "stockoutRate"
+        ]
+      },
+      {
+        "id": "delivery",
+        "label": "Delivery Time",
+        "metricKey": "avgDeliveryDays",
+        "historicalKeywords": [
+          "delivery",
+          "shipping"
+        ],
+        "requiredEvidence": [
+          "avgDeliveryDays"
+        ]
+      },
+      {
+        "id": "complaints",
+        "label": "Complaints",
+        "metricKey": "complaintRate",
+        "evidenceCategories": [
+          "complaint"
+        ],
+        "historicalKeywords": [
+          "complaint"
+        ],
+        "requiredEvidence": [
+          "complaintRate"
+        ]
+      },
+      {
+        "id": "cx",
+        "label": "Customer Sentiment",
+        "metricKey": "sentimentScore",
+        "evidenceCategories": [
+          "complaint",
+          "product"
+        ],
+        "historicalKeywords": [
+          "sentiment",
+          "experience",
+          "churn",
+          "retention"
+        ],
+        "requiredEvidence": [
+          "sentimentScore"
+        ]
+      }
+    ]
+  }
+}
