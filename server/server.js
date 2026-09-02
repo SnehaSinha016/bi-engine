@@ -67,7 +67,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`BI Engine API listening on http://localhost:${PORT}`);
+  console.log(`BI Engine API listening on https://bi-engine-mgly.onrender.com`);
   console.log(`Data source: ${process.env.DATA_SOURCE || "synthetic"} (regions: ${app.locals.dataset.regions.join(", ")})`);
   if (app.locals.dataset.dataSourceErrors?.length) {
     console.log(`Data source warnings: ${app.locals.dataset.dataSourceErrors.join(" | ")}`);
