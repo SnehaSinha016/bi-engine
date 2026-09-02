@@ -2,6 +2,10 @@
 
 ## KPI Intelligence-to-Action Engine
 
+## Live Demo
+
+[View BusinessIntelligence.ai Live Demo](https://bi-engine-eta.vercel.app/)
+
 BusinessIntelligence.ai is a decision-intelligence platform that helps businesses move from **"What changed?"** to **"Why did it change, how confident are we, and what should we do next?"**
 
 Instead of acting as a traditional dashboard that only displays KPI values, the system investigates important KPI movements by combining:
