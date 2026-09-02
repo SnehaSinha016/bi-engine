@@ -1,342 +1,1577 @@
-# KPI Intelligence-to-Action Engine — Prototype
+# BusinessIntelligence.ai
 
-[svg](https://github.com/SnehaSinha016/bi-engine#kpi-intelligence-to-action-engine--prototype)
+## KPI Intelligence-to-Action Engine
 
-An AI investigation and decision-intelligence layer on top of BI, built for the BusinessIntelligence.ai Round 2 brief. It turns a KPI movement into a traceable chain: materiality → driver tree → evidence → competing hypotheses → confidence → recommended action → persona-specific narrative → feedback.
+BusinessIntelligence.ai is a decision-intelligence platform that helps businesses move from **"What changed?"** to **"Why did it change, how confident are we, and what should we do next?"**
 
-## Round 2 upgrade: from scenario-driven demo to adaptive prototype
+Instead of acting as a traditional dashboard that only displays KPI values, the system investigates important KPI movements by combining:
 
-[svg](https://github.com/SnehaSinha016/bi-engine#round-2-upgrade-from-scenario-driven-demo-to-adaptive-prototype)
+- KPI analytics
+- Hierarchical driver trees
+- Multiple business data sources
+- Evidence and reconciliation
+- Historical business memory
+- Confidence and uncertainty analysis
+- Next-best investigation
+- Action recommendations
+- Persona-specific narratives
+- Analyst/business-user feedback
+- User-provided business data
 
-The prototype was evolved from a hardcoded, revenue-only demo into a genuinely dynamic one, in priority order:
+The central product workflow is:
 
-- **P0 Dynamic reasoning** — no hardcoded hypothesis list. Every leaf node in a KPI's driver tree (`shared/driverTrees.js`) becomes a candidate hypothesis automatically (`flattenHypothesisNodes` in the same file). All 5 KPIs (Revenue, Orders, Conversion, AOV, Churn) run the full investigation, not just Revenue.
-- **P1 Adaptive materiality** — thresholds are derived per-metric, per-region from that metric's own trailing volatility, combined with a static business-priority weight into an explainable 0–100 Materiality Score. Sparse history gets an explicit `UNKNOWN` state instead of a fabricated z-score.
-- **P2 Real business memory** — `POST /api/memory/propose` snapshots a resolved insight; `POST /api/memory/:id/confirm` requires an analyst to supply the confirmed cause/action/outcome before it's searchable. Future historical-similarity search uses seed *and* confirmed scenarios.
-- **P3 Dynamic metadata** — `/api/meta/*` endpoints (kpis, regions, hypotheses, personas, confidence-config) replace what used to be hardcoded arrays in the frontend.
-- **P4 Dynamic recommendations** — `analytics/impact.js` computes real currency impact for conversion- and price-type drivers from actual data; every other driver says "Impact estimate unavailable" instead of guessing.
-- **P5 Confidence** — weights configurable via env, explicit "not a probability of causality" disclaimer on every confidence object.
-- **P6 Data correctness** — removed `productMixShift`/`segmentMixShift` (never backed by a real field, silently always 0) and `leads`/`promoShare` (scaled duplicates dressed up as distinct metrics). The one legitimate composite (Operational branch) is now a documented, transparent aggregation of its children rather than a phantom field.
-- **P7 Security** — no hardcoded JWT fallback; the server refuses to boot without `JWT_SECRET` set.
-- **P8 Telemetry** — LLM pricing is env-configurable, not hardcoded.
+> **SEE → UNDERSTAND → TRUST → DECIDE → LEARN**
 
-See "Reasoning flow" and "Known limitations" below for the full detail, and the end of this section for exactly which files changed.
+---
 
-**Files changed / added in the Round 2 upgrade**
+# 1. The Problem
 
-New:
+Modern businesses have large amounts of information spread across different systems.
 
-- `server/analytics/impact.js` — P4 dynamic impact estimation
-- `server/store/scenarios.js` — P2 confirmed-scenario store
-- `server/routes/meta.js` — P3 metadata endpoints
+For example:
 
-Substantially rewritten:
+- ERP contains operational and transactional information.
+- CRM contains customer and sales information.
+- Support systems contain customer complaints and qualitative signals.
+- Different systems may use different identifiers, data grains, refresh times, calendars and definitions.
 
-- `server/shared/driverTrees.js` — trees for all 5 KPIs, fake nodes removed
-- `server/shared/kpiContracts.js` — `materialityFloor` + `businessWeight` replace the old single `materialityThreshold`
-- `server/shared/actionLibrary.js` — `expectedImpact` strings removed, new entries for previously-unmapped leaf nodes (traffic/customers/returns/cx)
-- `server/analytics/engine.js` — adaptive materiality, composite metrics, configurable confidence weights, `leads`/`promoShare` removed
-- `server/reasoning/investigate.js` — `investigateKpi()` replaces the revenue-only function; hypotheses generated dynamically from the tree
-- `server/routes/kpi.js`, `action.js`, `evidence.js`, `memory.js` — generalized to any KPI via `?kpi=` query param
-- `server/auth/middleware.js`, `server.js` — JWT fail-fast
-- `server/llm/provider.js`, `narrative.js` — configurable pricing, dynamic impact in prompts
-- `client/src/pages/KpiStory.jsx` — works for all 5 KPIs, shows Materiality Score breakdown, "Propose to Business Memory" button
-- `client/src/pages/DriverTree.jsx`, `ActionCenter.jsx`, `EvidenceExplorer.jsx` — KPI selector added
-- `client/src/pages/Feedback.jsx`, `HistoricalMemory.jsx`, `components/Sidebar.jsx` — dynamic metadata instead of hardcoded arrays; HistoricalMemory adds the pending-confirmation review UI
-- `client/src/lib/api.js` — new endpoints wired
+A traditional BI dashboard can show:
 
-Unchanged (P0–P8 didn't need to touch these): `data/generate.js`, `data/sources/*` (Shopify/Zendesk/Salesforce/CSV connectors), `auth/users.js`, `store/db.js`, `routes/auth.js`, `routes/feedback.js`, `routes/telemetry.js`, overall folder structure and API base paths.
-
-## Running it locally
-
-[svg](https://github.com/SnehaSinha016/bi-engine#running-it-locally)
-
-Two processes, no external database required (data is generated in-memory on boot with a fixed seed; feedback/telemetry/confirmed-scenarios persist to small JSON files under `server/.store/`).
-
-**Required first step:** copy `server/.env.example` to `server/.env` and set a real `JWT_SECRET` — the server now refuses to boot without one (P7, no hardcoded fallback).
-
+```text
+Revenue ↓ 13.3%
 ```
-# Terminal 1 — API
-cd server
-cp .env.example .env   # then edit .env and set JWT_SECRET
-npm install
-npm start          # http://localhost:4000
 
-# Terminal 2 — UI
+But a business user still has to manually investigate:
+
+```text
+Why did revenue fall?
+
+Was it because of:
+    ↓ conversion?
+    ↓ orders?
+    ↑ cancellations?
+    ↑ stockouts?
+    ↑ delivery time?
+    ↑ complaints?
+
+Which explanation has the strongest evidence?
+
+Is there evidence from another source?
+
+Has something similar happened before?
+
+How confident are we?
+
+Should we act now or investigate further?
+```
+
+BusinessIntelligence.ai is designed to automate and structure this investigation process.
+
+---
+
+# 2. What the Project Does
+
+At a high level, the system takes business data as input and produces an evidence-backed investigation and decision.
+
+```text
+Business Data
+     ↓
+Data Processing
+     ↓
+KPI Calculation
+     ↓
+Materiality Detection
+     ↓
+Driver Tree
+     ↓
+Hypothesis Generation
+     ↓
+Evidence Collection
+     ↓
+Data Reconciliation
+     ↓
+Historical Business Memory
+     ↓
+Confidence + Uncertainty
+     ↓
+Next Best Investigation
+     ↓
+Action Recommendation
+     ↓
+Persona-specific Narrative
+```
+
+The important design principle is that the system does **not** ask an LLM to directly guess the reason behind a KPI movement.
+
+The quantitative investigation is performed first.
+
+The LLM is used primarily to communicate the verified results clearly.
+
+---
+
+# 3. Example
+
+Suppose the system detects:
+
+```text
+Revenue
+Current:  ₹9,89,357
+Baseline: ₹11,41,000
+
+Movement: -13.29%
+```
+
+The system first determines whether the movement is materially different from normal historical behavior.
+
+It then investigates the KPI through its driver tree.
+
+For example:
+
+```text
+Revenue
+│
+├── Volume
+│   ├── Traffic
+│   ├── Conversion
+│   ├── Active Customers
+│   └── Returns / Cancellations
+│
+├── Price
+│   └── Discounts
+│
+└── Operational / Customer Context
+    ├── Inventory Stockouts
+    ├── Delivery Time
+    ├── Fulfillment SLA
+    ├── Complaints
+    └── Customer Sentiment
+```
+
+The system may discover that:
+
+```text
+Checkout Success Rate → strong signal
+Fulfillment SLA       → strong signal
+Traffic               → relatively stable
+Complaints             → increased
+```
+
+Instead of immediately declaring one cause as true, the investigation engine compares the competing explanations.
+
+If the evidence is too close or contradictory, the system can produce:
+
+```text
+Status: AMBIGUOUS
+
+No immediate action recommended.
+
+Next Best Investigation:
+Compare Checkout Success Rate and Fulfillment SLA
+across regions and time periods.
+```
+
+This is an intentional feature.
+
+The system should prefer **"we need more evidence"** over an unsupported root-cause claim.
+
+---
+
+# 4. Core Architecture
+
+```text
+                         BUSINESS DATA
+                              │
+              ┌───────────────┼───────────────┐
+              │               │               │
+             ERP             CRM           Support
+              │               │               │
+              └───────────────┼───────────────┘
+                              │
+                              ▼
+                    DATA PROCESSING LAYER
+                              │
+                              ▼
+                      KPI INTELLIGENCE
+                              │
+                              ▼
+                     MATERIALITY ENGINE
+                              │
+                              ▼
+                         DRIVER TREE
+                              │
+                              ▼
+                    HYPOTHESIS ENGINE
+                              │
+                              ▼
+                    EVIDENCE ENGINE
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+            RECONCILIATION       BUSINESS MEMORY
+                    │                   │
+                    └─────────┬─────────┘
+                              ▼
+                    CONFIDENCE ENGINE
+                              │
+                              ▼
+                   UNCERTAINTY ENGINE
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+             NEXT INVESTIGATION     ACTION ENGINE
+                    │                   │
+                    └─────────┬─────────┘
+                              ▼
+                     PERSONA ENGINE
+                              │
+                              ▼
+                         LLM NARRATIVE
+                              │
+                              ▼
+                         BUSINESS USER
+                              │
+                              ▼
+                         FEEDBACK
+                              │
+                              ▼
+                      BUSINESS MEMORY
+```
+
+---
+
+# 5. Main Intelligence Layers
+
+## 5.1 Data Layer
+
+The system accepts business information from multiple sources.
+
+Currently supported/demo sources include:
+
+- Synthetic business data
+- CSV data
+- ERP-style data
+- CRM-style data
+- Support-ticket data
+- User-provided data through the Data Management system
+
+The purpose of the data layer is to provide the information required for KPI analysis and investigation.
+
+---
+
+## 5.2 KPI Intelligence Layer
+
+The system tracks important business KPIs such as:
+
+- Revenue
+- Orders
+- Conversion Rate
+- Average Order Value
+- Customer Churn
+
+Each KPI has a defined analytical contract and can have its own driver hierarchy.
+
+The system calculates metrics such as:
+
+- Current value
+- Baseline value
+- Percentage movement
+- Historical volatility
+- Z-score
+- Anomaly score
+- Materiality
+- Driver contribution
+
+---
+
+# 6. Materiality Detection
+
+A KPI changing does not automatically mean that something is wrong.
+
+For example:
+
+```text
+Revenue:
+-1.5%
+```
+
+may be normal variation.
+
+But:
+
+```text
+Revenue:
+-13.3%
+```
+
+may be materially different from its normal behavior.
+
+The system therefore considers the KPI's historical behavior rather than relying only on a single fixed percentage.
+
+Materiality can incorporate signals such as:
+
+- Magnitude of movement
+- Historical volatility
+- Anomaly score
+- Statistical deviation
+- Business impact
+
+The objective is to prioritize movements that deserve investigation.
+
+---
+
+# 7. Driver Tree
+
+The Driver Tree is one of the central parts of the product.
+
+Instead of treating a KPI as one number, the system represents the business relationships around it.
+
+Example:
+
+```text
+Revenue
+│
+├── Volume
+│   ├── Traffic
+│   ├── Conversion
+│   ├── Active Customers
+│   └── Returns / Cancellations
+│
+├── Price
+│   └── Discounts
+│
+└── Operations
+    ├── Inventory Stockouts
+    ├── Delivery Time
+    └── Fulfillment SLA
+```
+
+Each driver can be investigated independently.
+
+The Driver Intelligence interface can display:
+
+- Current value
+- Baseline
+- Percentage change
+- Z-score
+- Volatility
+- Anomaly score
+- Materiality
+- Contribution
+- Business direction
+
+The driver tree provides the **structured search space** for the investigation.
+
+---
+
+# 8. Hypothesis Engine
+
+A KPI can have multiple possible explanations.
+
+The Hypothesis Engine ranks competing explanations rather than assuming that the first correlated signal is the root cause.
+
+Example:
+
+```text
+Revenue ↓ 13.3%
+
+Possible explanations:
+
+1. Checkout Success Rate
+2. Fulfillment SLA
+3. Inventory Stockouts
+4. Conversion Rate
+5. Customer Complaints
+```
+
+The ranking is based on analytical and contextual evidence available to the system.
+
+The system can therefore distinguish between:
+
+```text
+Leading hypothesis
+```
+
+and:
+
+```text
+Confirmed root cause
+```
+
+These are not treated as the same thing.
+
+---
+
+# 9. Evidence Engine
+
+The Evidence Engine collects information relevant to each hypothesis.
+
+Evidence can come from different sources.
+
+## ERP
+
+Typical signals include:
+
+- Revenue
+- Orders
+- Inventory
+- Discounts
+- Delivery
+- Fulfillment
+- Refunds
+
+## CRM
+
+Typical signals include:
+
+- Customers
+- Conversion
+- Churn
+- Customer behavior
+- Sales activity
+- Customer segments
+
+## Support
+
+Typical signals include:
+
+- Complaint volume
+- Ticket categories
+- Sentiment
+- Severity
+- Recurring issues
+- Regional patterns
+
+The system can classify evidence as:
+
+```text
+SUPPORTING
+CONTRADICTING
+NEUTRAL
+```
+
+This is important because an investigation should not only collect evidence that confirms its preferred hypothesis.
+
+---
+
+# 10. Data Reconciliation
+
+Business systems frequently disagree in structure or terminology.
+
+For example:
+
+```text
+ERP:
+North
+
+CRM:
+NORTH_REGION
+
+Support:
+N-01
+```
+
+These may represent the same business region.
+
+The reconciliation layer helps align heterogeneous information before it is used for investigation.
+
+The system can expose information such as:
+
+- Source freshness
+- Match rate
+- Data quality
+- Unmatched records
+- Region mapping
+- Source lineage
+- Data availability
+
+This allows users to understand whether the evidence being used is reliable.
+
+---
+
+# 11. Business Memory
+
+Business Memory gives the system the ability to reuse historical business situations.
+
+A business situation can be represented as a structured fingerprint.
+
+Example:
+
+```text
+Revenue       -13.3%
+Conversion     -4.8%
+Complaints    +36.7%
+Delivery      +40.2%
+Traffic        +1.2%
+```
+
+The current situation is compared with historical scenarios.
+
+Example:
+
+```text
+Current Situation
+       │
+       ▼
+Scenario Fingerprint
+       │
+       ▼
+Similarity Search
+       │
+       ▼
+Historical Scenario
+       │
+       ▼
+Previous Drivers
+       │
+       ▼
+Previous Action
+       │
+       ▼
+Previous Outcome
+```
+
+Historical memory is treated as **context**, not proof of causality.
+
+If the current situation does not sufficiently match a previous scenario, the system reports:
+
+```text
+Novel Pattern
+```
+
+instead of forcing a historical explanation.
+
+---
+
+# 12. Confidence Engine
+
+The system evaluates the strength of the investigation.
+
+Confidence can consider signals such as:
+
+- Driver contribution
+- Anomaly strength
+- Evidence strength
+- Cross-source agreement
+- Temporal alignment
+- Historical similarity
+- Data quality
+- Contradicting evidence
+- Analyst feedback
+
+The confidence score represents the **strength of available evidence**, not a guarantee that the proposed cause is causally true.
+
+---
+
+# 13. Uncertainty and Abstention
+
+One of the most important features of the project is that the system can say:
+
+> **"We do not have enough evidence to make this decision yet."**
+
+Possible investigation states include:
+
+- HIGH CONFIDENCE
+- MEDIUM CONFIDENCE
+- LOW CONFIDENCE
+- AMBIGUOUS
+- INVESTIGATE DEEPER
+- ABSTAIN
+- NOVEL PATTERN
+
+For example:
+
+```text
+Hypothesis A: 61.8
+Hypothesis B: 60.7
+```
+
+If the two explanations are too close, the system should not pretend that one is definitively correct.
+
+Instead:
+
+```text
+Status:
+AMBIGUOUS
+
+Decision:
+NO ACTION YET
+
+Next:
+Investigate the evidence that can distinguish
+the two leading hypotheses.
+```
+
+This makes uncertainty a part of the product rather than an error state.
+
+---
+
+# 14. Next Best Investigation
+
+When the system cannot confidently determine the cause, it can recommend the next analytical step.
+
+Example:
+
+```text
+Current uncertainty:
+
+Checkout Success Rate
+vs.
+Fulfillment SLA
+
+Next Best Investigation:
+
+Compare both signals across:
+- Regions
+- Time periods
+- Customer segments
+```
+
+The purpose is to turn uncertainty into a useful investigation plan.
+
+---
+
+# 15. Action Engine
+
+Once evidence is sufficiently strong, the system can move from investigation to action.
+
+The recommendation structure is:
+
+```text
+Driver
+    ↓
+Business Lever
+    ↓
+Recommended Action
+    ↓
+Owner
+    ↓
+Expected Impact
+    ↓
+Monitoring Plan
+```
+
+Example:
+
+```text
+Driver:
+Inventory Stockouts
+
+Action:
+Investigate affected inventory categories
+and prioritize replenishment.
+
+Owner:
+Operations Manager
+
+Monitoring:
+Track stockout rate and order recovery.
+```
+
+The system should not recommend immediate action when evidence is weak.
+
+For an ambiguous case:
+
+```text
+NO ACTION YET
+
+Reason:
+Evidence does not sufficiently distinguish
+between the leading hypotheses.
+
+Next:
+Run the recommended investigation.
+```
+
+---
+
+# 16. Persona-Specific Intelligence
+
+The same analytical result can be presented differently depending on the user.
+
+## Executive
+
+Focus:
+
+- What changed?
+- Why does it matter?
+- Confidence
+- Business impact
+- Decision
+- Owner
+
+Example:
+
+```text
+Revenue declined materially by 13.3%.
+
+Two operational drivers are currently competing.
+Evidence is insufficient for a confident root-cause decision.
+
+Decision:
+Investigate before taking corrective action.
+```
+
+## Analyst
+
+Focus:
+
+- Driver ranking
+- Statistical evidence
+- Supporting evidence
+- Contradicting evidence
+- Historical similarity
+- Confidence factors
+- Calculation details
+- Data lineage
+
+## Operations Manager
+
+Focus:
+
+- Operational problem
+- Affected region
+- Driver
+- Recommended action
+- Owner
+- Monitoring
+- Next investigation
+
+All personas use the same underlying analytical results.
+
+The presentation changes, not the underlying quantitative truth.
+
+---
+
+# 17. LLM Role
+
+The LLM is intentionally separated from quantitative reasoning.
+
+## Non-LLM / deterministic responsibilities
+
+The analytical system handles:
+
+- KPI calculations
+- Baselines
+- Percentage changes
+- Statistical measures
+- Materiality
+- Driver contribution
+- Evidence signals
+- Historical similarity
+- Confidence
+- Uncertainty states
+- Access control
+- Data quality
+
+## LLM responsibilities
+
+The LLM can handle:
+
+- Natural-language narratives
+- Persona-specific explanations
+- Contextual wording
+- Summarization of verified analytical results
+
+The LLM should not invent:
+
+- KPI values
+- Evidence
+- Driver contributions
+- Confidence scores
+- Historical matches
+- Business impact
+- Unsupported recommendations
+
+This architecture makes the AI layer more traceable and auditable.
+
+---
+
+# 18. Data Management System
+
+The project includes a **Data Management / Data Adding system** so that the application is not limited to fixed demonstration values.
+
+Users can provide their own business data from the frontend.
+
+The intended flow is:
+
+```text
+Data Management
+       │
+       ▼
+Select Source
+       │
+       ├── ERP
+       ├── CRM
+       └── Support
+       │
+       ▼
+Input Data
+       │
+       ├── Manual Entry
+       └── CSV Upload
+       │
+       ▼
+Preview
+       │
+       ▼
+Validation
+       │
+       ▼
+Processing
+       │
+       ▼
+Analytics Pipeline
+       │
+       ▼
+Updated KPI Intelligence
+```
+
+## Manual Data Entry
+
+Users can enter source-specific business records through the frontend.
+
+## CSV Upload
+
+Users can upload CSV files.
+
+The system can validate:
+
+- Required fields
+- Data types
+- Missing values
+- Invalid rows
+- Duplicate records
+- Schema compatibility
+
+The user can review the data before it is processed.
+
+---
+
+# 19. Dynamic User Data
+
+The important part of the Data Management feature is that user data should flow through the same intelligence pipeline.
+
+The application should not simply replace displayed numbers.
+
+Instead:
+
+```text
+User Data
+   ↓
+Processing
+   ↓
+KPI Calculation
+   ↓
+Driver Analysis
+   ↓
+Evidence
+   ↓
+Hypotheses
+   ↓
+Confidence
+   ↓
+Recommendations
+```
+
+Therefore, changing the underlying data can change:
+
+- KPI values
+- KPI movements
+- Materiality
+- Driver behavior
+- Driver contribution
+- Hypothesis ranking
+- Evidence
+- Confidence
+- Historical comparison
+- Decision state
+- Recommendations
+
+This is important for demonstrating that the product is an actual intelligence engine rather than a static dashboard.
+
+---
+
+# 20. Data Modes
+
+The prototype can work with different data sources/modes.
+
+## Synthetic / Demo Data
+
+Used for:
+
+- Demonstrations
+- Controlled scenarios
+- Testing
+- Known historical cases
+- Ambiguous cases
+- Novel cases
+- Sparse-history cases
+
+## User Data
+
+Data added through:
+
+- Manual entry
+- CSV upload
+
+## External Sources
+
+The architecture can support source-specific connectors where configured.
+
+Examples include:
+
+- Shopify-style commerce data
+- Zendesk-style support data
+- ERP data
+- CRM data
+
+---
+
+# 21. Application Pages
+
+## Executive Overview
+
+Answers:
+
+> **What needs my attention?**
+
+Shows:
+
+- Important KPI movements
+- Priority signals
+- KPI status
+- Data health
+- Source health
+- Intelligence engine status
+
+---
+
+## KPI Investigation
+
+Answers:
+
+> **Why did this KPI move?**
+
+Shows:
+
+- KPI movement
+- Baseline
+- Materiality
+- Trend
+- Investigation summary
+- Ranked hypotheses
+- Supporting evidence
+- Contradicting evidence
+- Historical context
+- Confidence
+- Uncertainty
+- Next Best Investigation
+- Decision state
+- Recommended action
+
+---
+
+## Driver Intelligence
+
+Answers:
+
+> **What measurable drivers are changing?**
+
+Provides:
+
+- Interactive driver tree
+- Driver selection
+- Current value
+- Baseline
+- Change
+- Z-score
+- Volatility
+- Anomaly score
+- Materiality
+- Contribution
+
+---
+
+## Evidence Explorer
+
+Answers:
+
+> **Why should I trust this conclusion?**
+
+Shows:
+
+- Evidence source
+- Observation
+- Supporting/contradicting signal
+- Data freshness
+- Method
+- Contribution
+- Lineage
+- Reconciliation information
+
+---
+
+## Business Memory
+
+Answers:
+
+> **Have we seen something like this before?**
+
+Shows:
+
+- Current scenario fingerprint
+- Historical matches
+- Similarity
+- Historical outcome
+- Scenario status
+- Novel pattern when no sufficiently similar case exists
+
+---
+
+## Action Center
+
+Answers:
+
+> **What should we do now?**
+
+Shows:
+
+- Investigation outcome
+- Decision state
+- Recommended action
+- Owner
+- Expected impact
+- Confidence
+- Monitoring plan
+- Next Best Investigation
+
+---
+
+## Feedback
+
+Answers:
+
+> **Was this investigation useful and correct?**
+
+Business users can provide feedback on:
+
+- Investigation quality
+- Driver ranking
+- Recommendation quality
+- Correctness
+- Confirmed business outcomes
+
+Feedback can contribute to the business-memory and ranking mechanisms of the prototype.
+
+---
+
+## Data Management
+
+Answers:
+
+> **Can I provide my own business data?**
+
+Allows users to:
+
+- Select a business source
+- Enter data manually
+- Upload CSV files
+- Preview data
+- Validate records
+- Process data
+- Use the resulting data in the intelligence pipeline
+
+---
+
+# 22. Security and RBAC
+
+The prototype includes authentication and role/region-based access control.
+
+Different users can have different access scopes.
+
+For example:
+
+```text
+Executive
+    ↓
+Broader business visibility
+
+Regional Manager
+    ↓
+Regional visibility
+
+Analyst
+    ↓
+Analytical investigation access
+```
+
+Access control is important because business intelligence systems may contain sensitive operational and commercial information.
+
+The prototype demonstrates RBAC behavior, while production deployment would typically integrate with an enterprise identity provider.
+
+---
+
+# 23. Learning from Feedback
+
+The system is designed around a feedback loop.
+
+```text
+Investigation
+     ↓
+Recommendation
+     ↓
+Business User
+     ↓
+Feedback
+     ↓
+Confirmed / Incorrect / Useful
+     ↓
+Business Memory
+     ↓
+Future Investigations
+```
+
+The prototype uses feedback to improve ranking and historical business memory behavior.
+
+A production system could extend this into a more advanced learning and calibration pipeline.
+
+---
+
+# 24. Telemetry
+
+The prototype also exposes runtime/usage information relevant to operating an AI intelligence system.
+
+Telemetry can help track:
+
+- Processing behavior
+- Model usage
+- LLM usage
+- Runtime information
+- Cost-related estimates
+
+This is important because a production decision-intelligence system must consider:
+
+- Latency
+- Cost
+- Scalability
+- Reliability
+- Model usage
+
+---
+
+# 25. Technology Stack
+
+## Frontend
+
+- React
+- Vite
+- JavaScript
+- Tailwind CSS
+- Lucide React
+
+## Backend
+
+- Node.js
+- Express.js
+- REST APIs
+
+## Intelligence / Analytics
+
+- Deterministic statistical analysis
+- Business rules
+- KPI contracts
+- Driver-tree reasoning
+- Evidence analysis
+- Historical similarity
+- Confidence scoring
+- Uncertainty handling
+- Recommendation logic
+- LLM-assisted narrative generation
+
+## Data
+
+- Synthetic business data
+- CSV data
+- User-provided data
+- Configured external data sources
+
+---
+
+# 26. Project Structure
+
+```text
+BusinessIntelligence.ai/
+│
+├── server/
+│   ├── analytics/
+│   │   ├── engine.js
+│   │   └── impact.js
+│   │
+│   ├── reasoning/
+│   │   └── investigate.js
+│   │
+│   ├── llm/
+│   │   ├── provider.js
+│   │   └── narrative.js
+│   │
+│   ├── shared/
+│   │   ├── driverTrees.js
+│   │   ├── kpiContracts.js
+│   │   └── actionLibrary.js
+│   │
+│   ├── auth/
+│   │   ├── middleware.js
+│   │   └── users.js
+│   │
+│   ├── data/
+│   │   ├── csv/
+│   │   ├── sources/
+│   │   └── generate.js
+│   │
+│   ├── routes/
+│   │   ├── kpi.js
+│   │   ├── evidence.js
+│   │   ├── action.js
+│   │   ├── memory.js
+│   │   ├── meta.js
+│   │   ├── feedback.js
+│   │   └── telemetry.js
+│   │
+│   └── store/
+│
+└── client/
+    └── src/
+        ├── pages/
+        ├── components/
+        ├── context/
+        └── lib/
+```
+
+The exact structure may evolve as the prototype develops.
+
+---
+
+# 27. Running the Project
+
+## Requirements
+
+- Node.js
+- npm
+
+## Start Backend
+
+```bash
+cd server
+npm install
+npm start
+```
+
+Backend:
+
+```text
+http://localhost:4000
+```
+
+## Start Frontend
+
+```bash
 cd client
 npm install
-npm run dev         # http://localhost:5173 (proxies /api to :4000)
+npm run dev
 ```
 
-**svg**
-
-No LLM API key is required — the app boots with a deterministic mock LLM provider. To use a real model for the narrative layer, set `ANTHROPIC_API_KEY` before starting the server; the provider interface (`server/llm/provider.js`) swaps automatically.
-
-## Data sources — synthetic, real CSV/Excel export, or live APIs
-
-[svg](https://github.com/SnehaSinha016/bi-engine#data-sources--synthetic-real-csvexcel-export-or-live-apis)
-
-The app no longer only runs on the in-memory synthetic generator. Data ingestion is a pluggable layer (`server/data/sources/`), selected with the `DATA_SOURCE` env var (copy `server/.env.example` to `server/.env`):
-
-| **`DATA_SOURCE`****What it doesSetup** |                                                                                                                                                               |                                                           |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `synthetic` (default)                  | Deterministic in-memory generator, same as before                                                                                                             | none                                                      |
-| `csv`                                  | Reads real files from `server/data/csv/*.csv`                                                                                                                 | none — files are already exported (see below)             |
-| `shopify`                              | Real orders/revenue/discounts/refunds from the Shopify Admin API, plus a real checkout-success proxy from abandoned checkouts                                 | `SHOPIFY_SHOP`, `SHOPIFY_ACCESS_TOKEN`                    |
-| `zendesk`                              | Real support tickets from the Zendesk API, with deterministic (non-LLM) category/sentiment classification                                                     | `ZENDESK_SUBDOMAIN`, `ZENDESK_EMAIL`, `ZENDESK_API_TOKEN` |
-| `blended`                              | Shopify for ERP + Zendesk for support + Salesforce (optional) for a churn signal, all overlaid onto the synthetic scaffold for any field none of them provide | any combination of the above                              |
-
-**Honesty about provenance is a first-class feature, not an afterthought.** Every dataset carries a `provenance` object (`{ erp, crm, support }`) saying exactly which source each domain came from, and for blended mode, exactly which *fields* are live vs. synthetic-fallback (e.g. `"shopify (live: orders, revenue, aov, discountRate, refundsRate, checkoutSuccessRate) + synthetic overlay for traffic, conversion, stockoutRate, ..."`). `GET /api/health` returns it, and the Executive Dashboard shows a "Live data connected" / "CSV file data" / "Synthetic demo data" badge sourced from the same field — nothing in the UI claims a number is measured when it was actually filled in.
-
-None of Shopify, Zendesk, or Salesforce natively provide every field the driver tree wants (e.g. no e-commerce platform hands you "SLA breach rate" or "customer sentiment" — those require your own instrumentation or a support desk). The composer (`server/data/sources/index.js`) overlays real values onto the synthetic scaffold field-by-field rather than replacing the whole row, so the reasoning engine always has a complete row to work with, and never hides which parts are real.
-
-Live connectors group by your real regions if you tell them how — one edit in `server/data/sources/regionMap.js`:
-
-```
-// server/data/sources/regionMap.js
-export const SHOPIFY_PROVINCE_TO_REGION = {
-  "California": "west", "Oregon": "west",
-  "New York": "north", "Massachusetts": "north",
-  "Texas": "south", "Florida": "south",
-};
-export const ZENDESK_TAG_TO_REGION = {
-  "region_north": "north", "region_south": "south", "region_west": "west",
-};
-```
-
-**svg**
-
-Once populated, Shopify orders and Zendesk tickets are grouped by your real regions instead of one flat `"all"` bucket, and `GET /api/health` / `provenance.erp` will say `"mapped to regions: north, south, west"` instead of `"unmapped"` so you can confirm it took effect. Leave a table empty and that source safely falls back to the single-bucket behavior — nothing breaks either way.
-
-### Real CSV/Excel export
-
-[svg](https://github.com/SnehaSinha016/bi-engine#real-csvexcel-export)
-
-`server/data/csv/` already contains a real, non-synthetic-*in the sense of generated-on-the-fly* export you can open directly:
-
-- `erp.csv`, `crm.csv`, `support.csv`, `historical_scenarios.csv`, `new_product.csv` — one file per domain, plain CSV
-- `bi_engine_export.xlsx` — the same data as a formatted, multi-sheet Excel workbook (one tab per domain, frozen header row, autofilter, column widths sized to content)
-
-These were exported once from the synthetic generator as a **starting schema** — replace the contents of any CSV with your own real exports (same column headers) and set `DATA_SOURCE=csv` to run the whole reasoning engine against them. The CSV provider (`server/data/sources/csvProvider.js`) reads file modification time for real freshness reporting, and derives `complaintRate` directly from ticket counts in `support.csv` rather than trusting a stored column, so it can't silently drift from the ticket data.
-
-### Connecting a live API in practice
-
-[svg](https://github.com/SnehaSinha016/bi-engine#connecting-a-live-api-in-practice)
-
-1. Create API credentials on the platform (Shopify custom app with `read_orders`/`read_checkouts` scopes; Zendesk API token; Salesforce Connected App with the username-password OAuth flow enabled).
-2. Copy `server/.env.example` → `server/.env`, fill in the relevant block.
-3. Set `DATA_SOURCE=shopify` (or `zendesk`, or `blended`).
-4. `npm start` — check the boot log line `Data source: ... ` and `GET /api/health` for `dataSourceErrors` if a call failed (the app never crashes on a connector failure, it logs the error and falls back to the synthetic value for that field).
-
-## Folder structure
-
-[svg](https://github.com/SnehaSinha016/bi-engine#folder-structure)
-
-```
-server/
-  data/
-    csv/           real CSV + Excel exports (starting schema — replace with
-                    your own data and set DATA_SOURCE=csv)
-    sources/       pluggable data-source providers: synthetic, csv, Shopify,
-                    Zendesk, Salesforce, and the composer that blends them
-    generate.js    the original synthetic generator (used as scaffold/fallback)
-  shared/        KPI semantic contracts, driver tree definition, action library
-  analytics/     deterministic engine: materiality, trend, anomaly, contribution,
-                 confidence, historical scenario similarity — NO LLM calls
-  reasoning/     investigation engine: tree traversal, hypothesis ranking,
-                 ambiguity/novelty/abstention decisions
-  llm/           provider interface (mock + real Anthropic), prompt building —
-                 the ONLY place LLM calls happen
-  auth/          JWT issuing + RBAC/row-level region filtering middleware
-  store/         JSON-file backed feedback + telemetry + confirmed-scenario store
-  routes/        Express routes per page/concern
-client/
-  src/pages/     one file per UI page (see below)
-  src/components/ Sidebar (persona/region switcher), ConfidenceRing, Badge
-  src/context/   AuthContext (session, persona, region)
-  src/lib/api.js thin fetch wrapper
-
-```
-
-**svg**
-
-## LLM vs non-LLM (the mandatory separation)
-
-[svg](https://github.com/SnehaSinha016/bi-engine#llm-vs-non-llm-the-mandatory-separation)
-
-Every number in the app — revenue, % change, z-score, anomaly score, contribution %, historical similarity, confidence score, materiality score, estimated currency impact, RBAC decisions — is computed in `analytics/engine.js`, `analytics/impact.js`, or `reasoning/investigate.js` with plain arithmetic. The LLM (`llm/narrative.js` → `llm/provider.js`) receives a compact, pre-computed fact sheet (`buildPrompt`) and is only allowed to turn it into persona-appropriate prose. It cannot invent hypotheses (they're generated from whichever KPI's driver tree is configured in `shared/driverTrees.js` — see Reasoning flow below), cannot invent actions (they come from `shared/actionLibrary.js`), cannot invent a currency impact (from `analytics/impact.js`, or explicitly "unavailable"), and cannot alter numbers — the mock provider even demonstrates this by template-filling rather than "reasoning" at all, and still produces coherent, correct output, since all the reasoning already happened upstream.
-
-## Reasoning flow
-
-[svg](https://github.com/SnehaSinha016/bi-engine#reasoning-flow)
-
-Works identically for all 5 KPIs (Revenue, Orders, Conversion, AOV, Churn) — `investigateKpi(dataset, kpiId, region, persona)` is the single entry point, no per-KPI special-casing.
-
-1. `materialityCheck` — is this move big enough *and* statistically significant to investigate at all? The threshold is **adaptive**: derived from this metric's own trailing coefficient of variation (`computeAdaptiveThreshold`), floored by a small per-KPI config value, combined with a static business-priority weight into an explainable 0–100 Materiality Score. Under 10 days of baseline history, this returns an explicit `UNKNOWN` state rather than a fabricated z-score.
-2. `buildDriverTreeIntelligence` — compute current value, baseline, % change, z-score, trend, volatility, anomaly score, and materiality for every node in the KPI's own driver tree. One branch (Operational, under Revenue) is a composite with no single real field — its value is a documented, transparent standardized average of its children (`computeCompositeMetrics`), not a phantom field.
-3. `generateHypotheses` — **no hardcoded list.** `flattenHypothesisNodes` walks the KPI's driver tree and turns every leaf node into a candidate hypothesis automatically. Each is scored on anomaly strength, support-ticket evidence, historical similarity (only applied to the hypothesis whose driver text actually matches — never uniformly), data quality, temporal alignment, and any analyst feedback penalty.
-4. Decision logic: if the top two hypotheses are within 8 confidence points of each other → `AMBIGUOUS` (abstain, ask for more evidence). If the top hypothesis is `HIGH` confidence → `RECOMMEND_ACTION`. If `MEDIUM` → `INVESTIGATE_DEEPER`. Otherwise → abstain/monitor.
-5. `matchHistoricalScenarios` — Euclidean similarity (not just cosine/ direction) over a 5-dimension scenario fingerprint, searched over **both** the seed incident library and any analyst-confirmed scenarios (P2 — `store/scenarios.js`). Below the threshold → `NOVEL PATTERN`.
-6. `estimateImpact` — for the top hypothesis, computes real currency impact where a reliable formula exists (conversion-type and price-type drivers); every other driver explicitly returns "Impact estimate unavailable."
-7. `narrateInsight` — the only LLM call — turns all of the above into an executive or operations-manager narrative.
-
-## Business memory
-
-[svg](https://github.com/SnehaSinha016/bi-engine#business-memory)
-
-Seed historical scenarios stay as curated starting data (`dataset.historicalScenarios`). New scenarios accumulate via a two-step, human-in-the-loop flow:
-
-1. `POST /api/memory/propose` — snapshot a resolved insight (KPI state/ fingerprint, driver tree summary, hypotheses, evidence, persona, timestamp) as `pending_confirmation`. Anyone can propose.
-2. `POST /api/memory/:id/confirm` — an analyst/business user supplies `confirmedCause`, `actionTaken`, and `outcome` (all required — the request is rejected without them). Only then does the scenario become eligible for future historical-similarity search, merged with the seed library in `matchHistoricalScenarios`.
-
-Historical similarity — seed or confirmed — is never presented as proof of causality, in the API messages or the LLM system prompt.
-
-## Demo scenarios (all live in the running prototype)
-
-[svg](https://github.com/SnehaSinha016/bi-engine#demo-scenarios-all-live-in-the-running-prototype)
-
-| **#ScenarioWhere** |                                                         |                                                                                                                                                                              |
-| ------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1                  | Known historical pattern (checkout/payment disruption)  | Revenue → North                                                                                                                                                              |
-| 2                  | Novel pattern (fulfillment/supply disruption, no match) | Revenue → South                                                                                                                                                              |
-| 3                  | Ambiguous (competing hypotheses, system abstains)       | Revenue → West                                                                                                                                                               |
-| 4                  | Sparse history (new product, <14 days)                  | "New Product (sparse)" page                                                                                                                                                  |
-| 5                  | Security / RBAC                                         | Switch persona in the sidebar: executive sees all regions aggregated, a Regional Manager is 403'd outside their region, Analyst sees raw ticket text others don't            |
-| 6                  | Dynamic reasoning across all 5 KPIs                     | Dashboard → click any KPI card (Orders/Conversion/AOV/Churn now get the full investigation, not just Revenue)                                                                |
-| 7                  | Real business memory                                    | KPI Story → "Propose to Business Memory" → Business Memory page → confirm with cause/action/outcome → re-run the same KPI/region and see it rank in future similarity search |
-
-Suggested walkthrough: sign in as **VP, Revenue** (executive) → Dashboard → click any KPI card → KPI Story (shows Materiality Score breakdown, dynamic hypotheses, and — where computable — a real currency impact estimate) → Driver Tree (pick a different KPI from the selector) → Evidence Explorer → Action Center → Business Memory (propose + confirm a scenario) → switch region to South (novel pattern) → switch to West (ambiguous) → visit "New Product (sparse)" → switch persona to **Regional Manager — North** and try changing region to South (blocked) → Feedback (now KPI-aware) → Telemetry.
-
-## Known limitations / what's next for production
-
-[svg](https://github.com/SnehaSinha016/bi-engine#known-limitations--whats-next-for-production)
-
-- Data is regenerated fresh (same seed) on every server restart in synthetic mode; there's no real persistence layer (Mongo/Postgres) — feedback/telemetry/confirmed-scenarios are flat JSON files, fine for a demo, not for concurrent multi-user production use.
-- The confidence model's weights are env-configurable and documented, but still hand-set defaults, not learned; a production version would calibrate them against outcome data captured through the feedback loop and the now-accumulating confirmed-scenario history.
-- Analyst feedback nudges future confidence scores by a fixed penalty; there is no real model retraining, as scoped.
-- RAG/embeddings for the historical scenario matcher is currently a deterministic fingerprint distance over seed + confirmed scenarios rather than a real vector store — swappable behind the same `matchHistoricalScenarios` interface.
-- No real authentication provider (Firebase/OAuth) — JWT issuance is a demo stand-in keyed off a fixed user list.
-- Live connectors (Shopify/Zendesk) aggregate into a single region bucket by default, until you fill in `server/data/sources/regionMap.js` (Shopify province, Zendesk tag) — see the "Data sources" section above. Salesforce region mapping needs a SOQL field added too (see comment in `salesforceProvider.js`), since most orgs don't have a region field on Opportunity by default.
-- Salesforce uses the username-password OAuth flow for prototype speed; production should move to the JWT Bearer flow (same `soql()` call, just swap how `access_token` is obtained).
-- Dynamic impact estimation (P4) covers conversion-type and price-type drivers only — the two cases with a reliable, non-speculative formula from the data this prototype has. Fulfillment, delivery, complaints, churn, and sentiment-type drivers correctly report "Impact estimate unavailable" rather than a fabricated number — extending this needs more data (e.g. order-level, churn-adjusted LTV) than the current ERP/CRM export carries.
-- The Operational branch's composite metric (`computeCompositeMetrics`) is a documented, transparent standardized average of its children — a reasonable, inspectable aggregation, but still a modeling choice, not a measured field. It exists only for tree-display/contribution-rollup purposes; no hypothesis or action is ever generated from it directly (hypotheses only come from leaf nodes).
-- Untested against live Shopify/Zendesk/Salesforce accounts in this environment (sandboxed, no outbound access to those domains) — the request/response shapes match each platform's documented REST API, but verify against your own account before relying on it.
-
----
-
-## User-driven data ingestion — implementation status
-
-The current project documentation does **not** yet establish that direct user data entry/upload is persisted in MongoDB and automatically drives the existing intelligence pipeline. The current prototype description says that synthetic data is generated in memory, while feedback, telemetry and confirmed scenarios use lightweight JSON persistence.
-
-Therefore, do **not** claim MongoDB-backed custom-data ingestion as completed unless the implementation has been verified end-to-end.
-
-### Target flow
+Frontend:
 
 ```text
-Data Management UI
-      ↓
-Manual Entry / CSV Upload
-      ↓
-Backend Ingestion API
-      ↓
-Validation + Normalization
-      ↓
-MongoDB
-      ↓
-Canonical Business Dataset
-      ↓
-Analytics Engine
-      ↓
-Intelligence / Investigation Engine
-      ↓
-Decision + Narrative
-      ↓
-Dynamic Frontend
-```
-
-The completed feature should support:
-
-- ERP / CRM / Support source selection
-- Manual record entry
-- CSV upload
-- Schema validation
-- Preview before ingestion
-- Invalid-row reporting
-- Duplicate detection
-- Ingestion-batch history
-- MongoDB persistence
-- Demo Data / My Data switching
-- Recalculation of KPIs after ingestion
-- Recalculation of driver contributions and hypotheses
-- Updated evidence, confidence, uncertainty and recommendations
-- Preservation of the existing synthetic demo mode
-
-The frontend should never simply replace displayed numbers. New values must travel through the backend analytics and intelligence pipeline.
-
-### Recommended data modes
-
-```text
-Demo Data
-  → existing deterministic synthetic scenarios
-
-My Data
-  → user-entered/uploaded records persisted in MongoDB
-
-Demo + My Data
-  → optional future capability
+http://localhost:5173
 ```
 
 ---
 
-## Architecture principle
+# 28. Environment Variables
 
-The system should maintain a strict separation:
+Example:
 
-```text
-FRONTEND
-   ↓
-API
-   ↓
-DATA INGESTION
-   ↓
-DATABASE
-   ↓
-DETERMINISTIC ANALYTICS
-   ↓
-INTELLIGENCE / REASONING
-   ↓
-DECISION LAYER
-   ↓
-LLM NARRATIVE
-   ↓
-FRONTEND
+```env
+JWT_SECRET=your-secure-secret
+DATA_SOURCE=synthetic
 ```
 
-Quantitative truth must remain outside the LLM. KPI values, materiality, statistical calculations, driver contribution, evidence scoring, confidence and access decisions should be computed deterministically and exposed with traceable evidence.
+If an external LLM provider is configured:
+
+```env
+ANTHROPIC_API_KEY=your-api-key
+```
+
+Secrets should never be committed to the repository.
 
 ---
 
-## Final verification checklist
+# 29. Demo Flow
 
-Before presenting the prototype, verify:
+A strong demonstration of the product can follow this sequence:
 
-- [ ] Demo mode still works
-- [ ] User can enter ERP data from the UI
-- [ ] User can enter CRM data from the UI
-- [ ] User can enter Support data from the UI
-- [ ] User can upload CSV data
-- [ ] Validation errors are visible
-- [ ] Duplicate records are detected
-- [ ] Records are actually persisted in MongoDB
-- [ ] Ingestion history is visible
-- [ ] My Data mode reads persisted records
-- [ ] Dashboard KPIs change from the user's data
-- [ ] Driver Tree changes from the user's data
-- [ ] Investigation hypotheses change from the user's data
-- [ ] Evidence changes from the user's data
-- [ ] Confidence and uncertainty change from the user's data
-- [ ] Recommendations change from the user's data
-- [ ] Existing Business Memory remains functional
-- [ ] Existing RBAC remains functional
-- [ ] Existing demo scenarios remain reproducible
-- [ ] No business result is hardcoded in the frontend
+### Step 1 — Executive Overview
+
+Show that the system detects a material KPI movement.
+
+### Step 2 — Investigate
+
+Open the KPI Investigation.
+
+Explain:
+
+```text
+What changed?
+How material is it?
+```
+
+### Step 3 — Driver Tree
+
+Open Driver Intelligence.
+
+Show how the KPI is decomposed into business drivers.
+
+### Step 4 — Evidence
+
+Select a driver and inspect:
+
+- Statistical signals
+- Source evidence
+- Supporting evidence
+- Contradicting evidence
+
+### Step 5 — Confidence
+
+Explain why the system has high, medium or low confidence.
+
+### Step 6 — Ambiguity
+
+Demonstrate a scenario where two hypotheses compete.
+
+Show:
+
+```text
+AMBIGUOUS
+```
+
+and explain why the system does not force a root cause.
+
+### Step 7 — Next Best Investigation
+
+Show what the user should investigate next.
+
+### Step 8 — Business Memory
+
+Show either:
+
+```text
+Historical Match
+```
+
+or:
+
+```text
+Novel Pattern
+```
+
+### Step 9 — Action Center
+
+Show whether the system recommends:
+
+```text
+ACT
+```
+
+or:
+
+```text
+INVESTIGATE
+```
+
+or:
+
+```text
+NO ACTION YET
+```
+
+### Step 10 — Persona
+
+Switch between:
+
+- Executive
+- Analyst
+- Operations Manager
+
+Show how the same evidence is communicated differently.
+
+### Step 11 — Add Data
+
+Open Data Management.
+
+Add or upload new data.
+
+### Step 12 — Recalculate
+
+Show that the intelligence results respond to the underlying data.
+
+This final step demonstrates that the system is not just a collection of hardcoded screens.
+
+---
+
+# 30. Important Design Principles
+
+## 1. The LLM is not quantitative truth
+
+Quantitative results come from the analytical layer.
+
+## 2. Correlation is not automatically causation
+
+A driver moving together with a KPI does not automatically prove that it caused the KPI movement.
+
+## 3. Historical memory is context, not proof
+
+A previous similar event can inform an investigation but should not automatically determine the current root cause.
+
+## 4. Contradicting evidence matters
+
+The system should actively account for evidence that challenges a hypothesis.
+
+## 5. Uncertainty is a valid result
+
+The system should be able to say:
+
+```text
+We do not know yet.
+```
+
+## 6. Recommendations must be grounded
+
+Actions should be connected to measurable drivers and controllable business levers.
+
+## 7. Different personas need different explanations
+
+Executives, analysts and operations managers should not receive identical narratives.
+
+## 8. User data should drive the analysis
+
+The Data Management system is intended to feed real/user-provided data into the same intelligence pipeline.
+
+---
+
+# 31. Current Limitations
+
+This is a competition/research prototype rather than a production enterprise platform.
+
+Current limitations include:
+
+1. Persistent database storage has **not yet been implemented**.
+2. Some demo users and synthetic scenarios are predefined.
+3. Historical memory is currently based on deterministic scenario/fingerprint similarity.
+4. Confidence calibration is prototype-level and does not yet have a large production outcome dataset.
+5. Feedback-driven learning is implemented at prototype level rather than as full model retraining.
+6. Some driver calculations use modeled/aggregated signals rather than direct measurements from every possible enterprise system.
+7. External connectors require appropriate configuration.
+8. Impact estimation is only produced where a defensible calculation is available.
+9. Production deployment would require stronger enterprise identity, secrets management, observability and data-governance controls.
+10. User-provided data can be processed through the application, but long-term persistent storage is a planned extension.
+
+---
+
+# 32. Round 2 Requirement Coverage
+
+| Requirement | BusinessIntelligence.ai |
+|---|---|
+| Detect material KPI movements | ✓ |
+| Prioritise important signals | ✓ |
+| Reconcile heterogeneous sources | ✓ |
+| Identify explanatory drivers | ✓ |
+| Rank competing hypotheses | ✓ |
+| Evidence-backed investigation | ✓ |
+| Supporting and contradicting evidence | ✓ |
+| Persona-specific narratives | ✓ |
+| Communicate uncertainty | ✓ |
+| Abstain when evidence is insufficient | ✓ |
+| Recommend practical actions | ✓ |
+| Next-best investigation | ✓ |
+| Historical business memory | ✓ |
+| Novel-pattern handling | ✓ |
+| Sparse-history handling | ✓ |
+| RBAC / access control | ✓ |
+| Source freshness / data quality | ✓ |
+| LLM vs non-LLM separation | ✓ |
+| Telemetry | ✓ |
+| Analyst/business feedback | ✓ |
+| User data ingestion | ✓ |
+| Persistent long-term data storage | Not yet implemented |
+
+---
+
+# 33. Future Improvements
+
+The prototype can be extended toward production with:
+
+- Persistent enterprise data storage
+- More enterprise connectors
+- Automatic schema discovery
+- Stronger KPI semantic contracts
+- More advanced causal inference
+- Learned confidence calibration
+- Automated seasonality detection
+- Production-grade vector retrieval for business memory
+- Enterprise SSO
+- Fine-grained data governance
+- Advanced audit trails
+- Model evaluation pipelines
+- Drift detection
+- Automated recommendation outcome tracking
+- Human-in-the-loop approval workflows
+- Scalable background processing
+
+---
+
+# 34. Final Product Vision
+
+Traditional BI answers:
+
+> **What happened?**
+
+BusinessIntelligence.ai aims to answer:
+
+> **What changed?**
+
+> **Why might it have changed?**
+
+> **What evidence supports that explanation?**
+
+> **How confident are we?**
+
+> **What should we investigate next?**
+
+> **What action is justified?**
+
+> **Have we seen this situation before?**
+
+> **What did the business learn from the outcome?**
+
+The goal is not to make an AI system that always gives an answer.
+
+The goal is to build an intelligence layer that knows when to:
+
+**Explain.**
+
+**Investigate.**
+
+**Recommend.**
+
+**Abstain.**
+
+and ultimately help businesses make better decisions from their data.
+
+---
+
+## BusinessIntelligence.ai
+
+**From KPI reporting to evidence-backed decision intelligence.**
+
+**SEE → UNDERSTAND → TRUST → DECIDE → LEARN**
